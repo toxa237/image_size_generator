@@ -35,19 +35,17 @@ class SheetImageGenerator(tf.keras.utils.Sequence):
     def get_vertical_line(self, image, max_w, max_h):
         x_cord = np.random.randint(max_w)
         y_cord = np.random.randint(max_h)
-        images_input = []
-        for i in range(self.piece_count):
-            images_input.append(image[x_cord: x_cord + self.piece_size[0],
-                                      y_cord + i * self.piece_size[1]: y_cord + (i + 1) * self.piece_size[1]])
+        images_input = image[x_cord: x_cord + self.piece_size[0] * self.piece_count,
+                             y_cord:y_cord + self.piece_size[0]]
+        images_input = np.split(images_input, self.piece_count, axis=0)
         return images_input
 
     def get_horizontal_line(self, image, max_w, max_h):
         x_cord = np.random.randint(max_w)
         y_cord = np.random.randint(max_h)
-        images_input = []
-        for i in range(self.piece_count):
-            images_input.append(image[x_cord + i*self.piece_size[0]: x_cord + (i + 1) * self.piece_size[0],
-                                      y_cord: y_cord + self.piece_size[1]])
+        images_input = image[x_cord: x_cord + self.piece_size[0],
+                             y_cord:y_cord + self.piece_size[0] * self.piece_count]
+        images_input = np.split(images_input, self.piece_count, axis=1)
         return images_input
 
 
