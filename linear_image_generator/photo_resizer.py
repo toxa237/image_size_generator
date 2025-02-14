@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from tensorflow.keras.models import load_model
-from tensorflow.keras.utils import load_img
-
+from keras.api.utils import load_img
+from image_pise_gen_nn_train import ImagePiceGeneratorModel
 
 class ImageResizer:
     def __init__(self):
-        self.model = load_model('models/model3')
+        self.model = ImagePiceGeneratorModel.load_model('models/first_linear_image_generator')
+        self._noise_dim = self.model.noise_dim
         self.size = 50
 
     def predict(self, img, left=0, right=0, top=0, bottom=0):
@@ -36,7 +36,8 @@ class ImageResizer:
             input_val.append(np.split(img[step:step+self.size, -3*self.size:], 3, 1))
         input_val.append([img[i*self.size-1:(i+1)*self.size-1, -self.size:] for i in range(-3, 0)])
         input_val = np.array(input_val)
-        predict = self.model.predict(input_val)
+        random_noise_vectors = np.random.normal(0, 1, (input_val.shape[0], self._noise_dim))
+        predict = self.model.generator.predict([input_val, random_noise_vectors])
         predict = np.concatenate(predict, axis=0)
         predict = np.delete(predict, np.s_[-self.size:-len_last_piece], 0)
         return np.append(img, predict, axis=1)
@@ -49,7 +50,8 @@ class ImageResizer:
             input_val.append(np.split(img[step:step+self.size, :3*self.size], 3, 1)[::-1])
         input_val.append([img[i*self.size:(i+1)*self.size, :self.size] for i in range(3)][::-1])
         input_val = np.array(input_val)
-        predict = self.model.predict(input_val)
+        random_noise_vectors = np.random.normal(0, 1, (input_val.shape[0], self._noise_dim))
+        predict = self.model.generator.predict([input_val, random_noise_vectors])
         predict = np.concatenate(predict, axis=0)
         predict = np.delete(predict, np.s_[-self.size:-len_last_piece], 0)
         return np.append(predict, img, axis=1)
@@ -62,7 +64,8 @@ class ImageResizer:
             input_val.append(np.split(img[:3*self.size, step:step+self.size], 3, 0)[::-1])
         input_val.append(np.split(img[:3*self.size, -self.size:], 3, 0)[::-1])
         input_val = np.array(input_val)
-        predict = self.model.predict(input_val)
+        random_noise_vectors = np.random.normal(0, 1, (input_val.shape[0], self._noise_dim))
+        predict = self.model.generator.predict([input_val, random_noise_vectors])
         predict = np.concatenate(predict, axis=1)
         predict = np.delete(predict, np.s_[-self.size:-len_last_piece], 1)
         return np.append(predict, img, axis=0)
@@ -75,7 +78,8 @@ class ImageResizer:
             input_val.append(np.split(img[-3*self.size:, step:step+self.size], 3, 0))
         input_val.append(np.split(img[-3*self.size:, -self.size:], 3, 0))
         input_val = np.array(input_val)
-        predict = self.model.predict(input_val)
+        random_noise_vectors = np.random.normal(0, 1, (input_val.shape[0], self._noise_dim))
+        predict = self.model.generator.predict([input_val, random_noise_vectors])
         predict = np.concatenate(predict, axis=1)
         predict = np.delete(predict, np.s_[-self.size:-len_last_piece], 1)
         return np.append(img, predict, axis=0)
@@ -85,7 +89,7 @@ if __name__ == '__main__':
     image = np.array(load_img('../../foto1.jpg'))/255
     print(image.shape)
     q = ImageResizer()
-    image = q.predict(image, bottom=110)
+    image = q.predict(image, left=50, right=50, top=50, bottom=50)
     print(image.shape)
     plt.imshow(image)
     plt.show()

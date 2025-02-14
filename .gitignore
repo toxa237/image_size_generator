@@ -1,6 +1,6 @@
-/data1
-/data2
+/data
 /.ipynb_checkpoints
 /.idea
-/venv
+/.venv
 /models
+/.vscode
